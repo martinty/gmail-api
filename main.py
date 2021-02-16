@@ -71,7 +71,7 @@ def find_msg_ids(service, subject):
         msg = get_msg(service, 'me', msg_id)
         label_ids = msg.get('labelIds')
         if label_ids[0] != 'UNREAD':
-            break
+            continue
         payload = msg.get('payload')
         headers = payload.get('headers')
         for info in headers:
@@ -196,12 +196,18 @@ def send_msg(service, user_id, message):
     """
     try:
         msg = service.users().messages().send(userId=user_id, body=message).execute()
-        print('Message Id: %s' % message['id'])
+        print('Message Id: %s' % msg['id'])
         return msg
     except Exception as e:
         print('An error occurred: %s' % e)
         return None
 
+
+def remove_label_from_msg(service, msg_id, label):
+    try:
+        service.users().messages().modify(userId='me', id=msg_id, body={'removeLabelIds': [label]}).execute()
+    except Exception as e:
+        print('An error occurred: %s' % e)
 
 def main():
     """Shows basic usage of the Gmail API.
@@ -249,8 +255,9 @@ def main():
         to_email = find_sender_email(service, msg_id)
         text = get_feedback('feedback.txt')
         msg = create_msg(from_email, to_email, 'TDT4102 feedback', text)
-        send_msg(service, 'me', msg)
-        print("Email sent to " + to_email)
+        #send_msg(service, 'me', msg)
+        print("Email sent to " + to_email + " from " + from_email)
+        remove_label_from_msg(service, msg_id, 'UNREAD')
 
     print("Done...")
 
