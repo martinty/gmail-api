@@ -1,0 +1,3 @@
+[submodule "automated-testing"]
+	path = automated-testing
+	url = git@github.com:martinty/automated-testing.git
