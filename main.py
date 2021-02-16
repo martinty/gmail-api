@@ -247,7 +247,7 @@ def main():
         for msg_id in msg_id_list:
             subprocess.call(["rm -f handin.zip"], shell=True)
             load_attachments(service, 'me', msg_id, './')
-            run_shell_script("run_test.sh")
+            run_shell_script("test_code.sh")
             from_email = profile.get('emailAddress')
             to_email = find_sender_email(service, msg_id)
             text = get_feedback('feedback.txt')

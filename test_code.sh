@@ -14,5 +14,5 @@ cd automated-testing
 ./setup.sh remove
 ./setup.sh run release
 cp build/feedback.txt $SCRIPTPATH
-cd $SCRIPTPATH
 
+cd $SCRIPTPATH
