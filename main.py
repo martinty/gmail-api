@@ -210,9 +210,10 @@ def remove_label_from_msg(service, msg_id, label):
         print('An error occurred: %s' % e)
 
 def main():
-    """Shows basic usage of the Gmail API.
-    Lists the user's Gmail labels.
     """
+    Shows basic usage of the Gmail API.
+    """
+
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -233,29 +234,18 @@ def main():
             pickle.dump(creds, token)
 
     service = build('gmail', 'v1', credentials=creds)
-
-    """
-    # Call the Gmail API
-    results = service.users().labels().list(userId='me').execute()
-    labels = results.get('labels', [])
-    if not labels:
-        print('No labels found.')
-    else:
-        print('Labels:')
-        for label in labels:
-            print(label['name'])
-    """
+    profile = service.users().getProfile(userId='me').execute()
 
     msg_id_list = find_msg_ids(service, 'TDT4102')
     for msg_id in msg_id_list:
         subprocess.call(["rm -f handin.zip"], shell=True)
         load_attachments(service, 'me', msg_id, './')
         run_shell_script("run_test.sh")
-        from_email = '<tysselandm@gmail.com>'
+        from_email = profile.get('emailAddress')
         to_email = find_sender_email(service, msg_id)
         text = get_feedback('feedback.txt')
         msg = create_msg(from_email, to_email, 'TDT4102 feedback', text)
-        #send_msg(service, 'me', msg)
+        send_msg(service, 'me', msg)
         print("Email sent to " + to_email + " from " + from_email)
         remove_label_from_msg(service, msg_id, 'UNREAD')
 
