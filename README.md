@@ -23,6 +23,9 @@ Python 3.6.9
 pip 21.0.1
 ```
 
+## Git Tools - Submodules
+
+https://git-scm.com/book/en/v2/Git-Tools-Submodules
 
 ## pip freeze
 ```
