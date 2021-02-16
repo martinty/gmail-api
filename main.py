@@ -16,6 +16,8 @@ from google.auth.transport.requests import Request
 import subprocess
 import base64
 import email
+import time
+from datetime import datetime
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
@@ -209,6 +211,7 @@ def remove_label_from_msg(service, msg_id, label):
     except Exception as e:
         print('An error occurred: %s' % e)
 
+
 def main():
     """
     Shows basic usage of the Gmail API.
@@ -236,20 +239,23 @@ def main():
     service = build('gmail', 'v1', credentials=creds)
     profile = service.users().getProfile(userId='me').execute()
 
-    msg_id_list = find_msg_ids(service, 'TDT4102')
-    for msg_id in msg_id_list:
-        subprocess.call(["rm -f handin.zip"], shell=True)
-        load_attachments(service, 'me', msg_id, './')
-        run_shell_script("run_test.sh")
-        from_email = profile.get('emailAddress')
-        to_email = find_sender_email(service, msg_id)
-        text = get_feedback('feedback.txt')
-        msg = create_msg(from_email, to_email, 'TDT4102 feedback', text)
-        send_msg(service, 'me', msg)
-        print("Email sent to " + to_email + " from " + from_email)
-        remove_label_from_msg(service, msg_id, 'UNREAD')
-
-    print("Done...")
+    while True:
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        print(current_time, "--> Check for new emails")
+        msg_id_list = find_msg_ids(service, 'TDT4102')
+        for msg_id in msg_id_list:
+            subprocess.call(["rm -f handin.zip"], shell=True)
+            load_attachments(service, 'me', msg_id, './')
+            run_shell_script("run_test.sh")
+            from_email = profile.get('emailAddress')
+            to_email = find_sender_email(service, msg_id)
+            text = get_feedback('feedback.txt')
+            msg = create_msg(from_email, to_email, 'TDT4102 feedback', text)
+            send_msg(service, 'me', msg)
+            print("Email sent to " + to_email + " from " + from_email)
+            remove_label_from_msg(service, msg_id, 'UNREAD')
+        time.sleep(5)
 
 
 if __name__ == '__main__':
