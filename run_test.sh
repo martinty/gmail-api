@@ -11,6 +11,7 @@ mkdir ../automated-testing/src_zip
 cp handin.zip ../automated-testing/src_zip
 
 cd ../automated-testing
+./setup.sh remove
 ./setup.sh run release
 cp build/feedback.txt $SCRIPTPATH
 cd $SCRIPTPATH
