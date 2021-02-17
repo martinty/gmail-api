@@ -137,10 +137,12 @@ def create_msg_with_attachment(sender, to, subject, message_text, file):
 
     if content_type is None or encoding is not None:
         content_type = 'application/octet-stream'
+
     main_type, sub_type = content_type.split('/', 1)
+
     if main_type == 'text':
         fp = open(file, 'rb')
-        msg = MIMEText(fp.read(), _subtype=sub_type)
+        msg = MIMEText(fp.read().decode("utf-8"), _subtype=sub_type)
         fp.close()
     elif main_type == 'image':
         fp = open(file, 'rb')
@@ -159,7 +161,8 @@ def create_msg_with_attachment(sender, to, subject, message_text, file):
     msg.add_header('Content-Disposition', 'attachment', filename=filename)
     message.attach(msg)
 
-    return {'raw': base64.urlsafe_b64encode(message.as_string())}
+    raw_message = base64.urlsafe_b64encode(message.as_string().encode("utf-8"))
+    return {'raw': raw_message.decode("utf-8")}
 
 
 def create_draft(service, user_id, message_body):
@@ -238,6 +241,9 @@ def main():
 
     service = build('gmail', 'v1', credentials=creds)
     profile = service.users().getProfile(userId='me').execute()
+    from_email = profile.get('emailAddress')
+    subject = 'TDT4102 feedback'
+    filename = 'feedback.txt'
 
     while True:
         now = datetime.now()
@@ -248,10 +254,9 @@ def main():
             subprocess.call(["rm -f handin.zip"], shell=True)
             load_attachments(service, 'me', msg_id, './')
             run_shell_script("test_code.sh")
-            from_email = profile.get('emailAddress')
             to_email = find_sender_email(service, msg_id)
-            text = get_feedback('feedback.txt')
-            msg = create_msg(from_email, to_email, 'TDT4102 feedback', text)
+            text = get_feedback(filename)
+            msg = create_msg_with_attachment(from_email, to_email, subject, text, filename)
             send_msg(service, 'me', msg)
             print("Email sent to " + to_email + " from " + from_email)
             remove_label_from_msg(service, msg_id, 'UNREAD')
