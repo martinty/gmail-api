@@ -24,14 +24,21 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
 
 def run_shell_script(name):
-    subprocess.call(["sh", name], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    try:
+        subprocess.call(["sh", name], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    except Exception as error:
+        print('An error occurred: %s' % error)
 
 
 def get_feedback(name):
-    f = open(name, "r")
-    text = f.read()
-    f.close()
-    return text
+    try:
+        f = open(name, "r")
+        text = f.read()
+        f.close()
+        return text
+    except Exception as error:
+        print('An error occurred: %s' % error)
+        return None
 
 
 def get_msg_all(service, user_id):
@@ -66,30 +73,38 @@ def load_attachments(service, user_id, msg_id, store_dir):
 
 
 def find_msg_ids(service, subject):
-    msg_all = get_msg_all(service, 'me').get('messages')
-    msg_id_list = []
-    for msg_info in msg_all:
-        msg_id = msg_info.get('id')
-        msg = get_msg(service, 'me', msg_id)
-        label_ids = msg.get('labelIds')
-        if label_ids[0] != 'UNREAD':
-            continue
-        payload = msg.get('payload')
-        headers = payload.get('headers')
-        for info in headers:
-            if info.get('name') == 'Subject' and info.get('value') == subject:
-                msg_id_list.append(msg_id)
-    return msg_id_list
+    try:
+        msg_all = get_msg_all(service, 'me').get('messages')
+        msg_id_list = []
+        for msg_info in msg_all:
+            msg_id = msg_info.get('id')
+            msg = get_msg(service, 'me', msg_id)
+            label_ids = msg.get('labelIds')
+            if label_ids[0] != 'UNREAD':
+                continue
+            payload = msg.get('payload')
+            headers = payload.get('headers')
+            for info in headers:
+                if info.get('name') == 'Subject' and info.get('value') == subject:
+                    msg_id_list.append(msg_id)
+        return msg_id_list
+    except Exception as error:
+        print('An error occurred: %s' % error)
+        return None
 
 
 def find_sender_email(service, msg_id):
-    msg = get_msg(service, 'me', msg_id)
-    payload = msg.get('payload')
-    headers = payload.get('headers')
-    for info in headers:
-        if info.get('name') == 'Return-Path':
-            return info.get('value')
-    return None
+    try:
+        msg = get_msg(service, 'me', msg_id)
+        payload = msg.get('payload')
+        headers = payload.get('headers')
+        for info in headers:
+            if info.get('name') == 'Return-Path':
+                return info.get('value')
+        return None
+    except Exception as error:
+        print('An error occurred: %s' % error)
+        return None
 
 
 def create_msg(sender, to, subject, message_text):
@@ -246,21 +261,24 @@ def main():
     filename = 'feedback.txt'
 
     while True:
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        print(current_time, "--> Check for new emails")
-        msg_id_list = find_msg_ids(service, 'TDT4102')
-        for msg_id in msg_id_list:
-            subprocess.call(["rm -f handin.zip"], shell=True)
-            load_attachments(service, 'me', msg_id, './')
-            run_shell_script("test_code.sh")
-            to_email = find_sender_email(service, msg_id)
-            text = get_feedback(filename)
-            msg = create_msg_with_attachment(from_email, to_email, subject, text, filename)
-            send_msg(service, 'me', msg)
-            print("Email sent to " + to_email + " from " + from_email)
-            remove_label_from_msg(service, msg_id, 'UNREAD')
-        time.sleep(5)
+        try:
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            print(current_time, "--> Check for new emails")
+            msg_id_list = find_msg_ids(service, 'TDT4102')
+            for msg_id in msg_id_list:
+                subprocess.call(["rm -f handin.zip"], shell=True)
+                load_attachments(service, 'me', msg_id, './')
+                run_shell_script("test_code.sh")
+                to_email = find_sender_email(service, msg_id)
+                text = get_feedback(filename)
+                msg = create_msg_with_attachment(from_email, to_email, subject, text, filename)
+                send_msg(service, 'me', msg)
+                print("Email sent to " + to_email + " from " + from_email)
+                remove_label_from_msg(service, msg_id, 'UNREAD')
+            time.sleep(5)
+        except Exception as error:
+            print('An error occurred: %s' % error)
 
 
 if __name__ == '__main__':
