@@ -15,10 +15,9 @@
 - Only works with oving03 (cannonball) at the moment
 - Gets feedback sent back as an email from xxx@gmail.com
 
-
 ## Version
 
-```
+```txt
 Python 3.6.9
 pip 21.0.1
 ```
@@ -27,8 +26,13 @@ pip 21.0.1
 
 https://git-scm.com/book/en/v2/Git-Tools-Submodules
 
-## pip freeze
+```sh
+git submodule update --remote
 ```
+
+## pip freeze
+
+```txt
 cachetools==4.2.1
 certifi==2020.12.5
 chardet==4.0.0
